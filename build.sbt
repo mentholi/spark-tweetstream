@@ -1,4 +1,4 @@
-name := """tweetstream"""
+name := """spark-tweetstream"""
 
 version := "0.0.1"
 
