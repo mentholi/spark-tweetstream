@@ -18,7 +18,7 @@ trait TwitterExampleBase {
   // First, let's configure Spark
   // We will deploy locally using a thread for each core (that's what the '*' stands for)
   val sparkConfiguration = new SparkConf().
-    setAppName("tweetstream-demo").
+    setAppName("spark-tweetstream").
     setMaster("local[*]")
 
   // Let's create the Spark Context using the configuration we just created
