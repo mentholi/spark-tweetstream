@@ -36,16 +36,22 @@ object TwitterExample extends App with TwitterExampleBase {
   // Transform the (tweet, score) tuple into a readable string and print it
   textAndNonNeutralScore.map(makeReadable).print
 
-  // Calculate most popular words for time window of 30 seconds
-  // each 5 seconds
-  val wordLists = textAndMeaningfulSentences.map(tweet => tweet._2)
-  val wordPairs = wordLists
-    .flatMap(_.tail)
-    .filter(word => word.length > 3)
-    .map(word => (word, 1))
+  // Flatten Array of words in each tweet to own items and then tuples of
+  // word and integer. We also give them initial count of 1
+  val wordStream = textAndSentences.flatMap(tweet => tweet._1.split(" "))
+  val hashtagStream = wordStream
+    .filter(w => w.startsWith("#"))
+    .map(tag => (tag, 1))
 
-  val windowedWordCounts = wordPairs.reduceByKeyAndWindow((a: Int, b: Int) => (a + b), Seconds(20), Seconds(4))
-  windowedWordCounts.transform(rdd => rdd.sortBy(_._2, false)).print()
+  // Calculate most popular hashtags for past 20 seconds.
+  // We re-calculate this list every 5 seconds.
+  val windowedHashtagCounts = hashtagStream.reduceByKeyAndWindow((a: Int, b: Int) => (a + b), Seconds(60), Seconds(4))
+  // According to some people in interwebs reduceByKeyAndWindow should return single rdd
+  // so roting like this should work!
+  windowedHashtagCounts.transform(rdd => rdd.sortBy(_._2, false)).print()
+
+  // Save plain tweets to disk
+  //tweets.saveAsTextFiles("/tmp/tweet_data", "txt")
 
   // Now that the streaming is defined, start it
   streamingContext.start()
